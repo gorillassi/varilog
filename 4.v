@@ -1,31 +1,30 @@
 module priority_deshiphrator (
     input [7:0] num,
-    output reg [2:0] ub
+    output [2:0] ub
 );
 
-    reg [2:0] a [7:0];
-    reg [2:0] c [3:0];
-    reg [2:0] d [1:0];
+wire [2:0] index_values [7:0];
+wire [2:0] max_pairs [3:0];
+wire [2:0] max_c0, max_c1;
 
-    always @(*) begin
-        a[0] = (num[0]) ? 3'b000 : 3'b000;
-        a[1] = (num[1]) ? 3'b001 : 3'b000;
-        a[2] = (num[2]) ? 3'b010 : 3'b000;
-        a[3] = (num[3]) ? 3'b011 : 3'b000;
-        a[4] = (num[4]) ? 3'b100 : 3'b000;
-        a[5] = (num[5]) ? 3'b101 : 3'b000;
-        a[6] = (num[6]) ? 3'b110 : 3'b000;
-        a[7] = (num[7]) ? 3'b111 : 3'b000;
-
-        c[0] = (a[1] >= a[0]) ? a[1] : a[0];
-        c[1] = (a[3] >= a[2]) ? a[3] : a[2];
-        c[2] = (a[5] >= a[4]) ? a[5] : a[4];
-        c[3] = (a[7] >= a[6]) ? a[7] : a[6];
-
-        d[0] = (c[1] >= c[0]) ? c[1] : c[0];
-        d[1] = (c[3] >= c[2]) ? c[3] : c[2];
-
-        ub = (d[1] >= d[0]) ? d[1] : d[0];
+genvar idx;
+generate 
+    for (idx = 0; idx < 8; idx = idx + 1) begin : index_assignment
+        assign index_values[idx] = (num[idx]) ? idx : 3'b000;
     end
+endgenerate
+
+genvar pair_idx;
+generate 
+    for (pair_idx = 0; pair_idx < 4; pair_idx = pair_idx + 1) begin : pair_comparison
+        assign max_pairs[pair_idx] = (index_values[2 * pair_idx + 1] > index_values[2 * pair_idx]) ? 
+                                      index_values[2 * pair_idx + 1] : index_values[2 * pair_idx];
+    end
+endgenerate
+
+assign max_c1 = (max_pairs[3] > max_pairs[2]) ? max_pairs[3] : max_pairs[2];
+assign max_c0 = (max_pairs[1] > max_pairs[0]) ? max_pairs[1] : max_pairs[0];
+
+assign ub = (max_c1 > max_c0) ? max_c1 : max_c0;
 
 endmodule
